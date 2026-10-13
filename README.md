@@ -46,3 +46,25 @@ npm run dist:linux   # build Linux AppImage/.deb    (run on Linux)
 
 Each OS's installer is built on that OS (or in CI). Every installer is self-contained — Electron
 bundles its own runtime, so a user installs one file and it runs; there is nothing else to install.
+
+## Releasing a new version (CI does the builds)
+
+`.github/workflows/release.yml` builds Windows/macOS/Linux installers on GitHub's runners and
+attaches them to a release whenever you push a version tag. To cut a release:
+
+```
+# 1. make your changes, test locally with: npm start
+# 2. bump the version in package.json (e.g. 1.0.0 -> 1.0.1), commit and push
+git commit -am "..."
+git push
+
+# 3. tag that version and push the tag — this is what triggers the build
+git tag v1.0.1
+git push origin v1.0.1
+```
+
+GitHub Actions then builds all three installers and attaches them to the `v1.0.1` release. The
+Pebbles web app's download page reads the latest release, so freelancers see the new build
+automatically — they re-download and reinstall. (A future in-app auto-updater can remove even that
+step.)
+

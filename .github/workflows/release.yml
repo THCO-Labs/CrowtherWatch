@@ -1,0 +1,64 @@
+name: Release
+
+# Build and publish installers whenever a version tag is pushed (e.g. v1.0.1).
+# Each OS is built on its own runner — a platform can only build its own installer — and the
+# results are attached to that tag's GitHub Release. The download page in the Pebbles web app reads
+# the latest release, so new builds appear there automatically.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write   # needed to create/update the release and upload assets
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            cmd: npm run dist:win
+            files: |
+              release/*.exe
+              release/*.exe.blockmap
+              release/latest.yml
+          - os: macos-latest
+            cmd: npm run dist:mac
+            files: |
+              release/*.dmg
+              release/latest-mac.yml
+          - os: ubuntu-latest
+            cmd: npm run dist:linux
+            files: |
+              release/*.AppImage
+              release/*.deb
+              release/latest-linux.yml
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Name the artifacts after the tag (strip the leading "v") so a v1.0.1 tag yields 1.0.1 files.
+      - name: Set version from tag
+        shell: bash
+        run: npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version --allow-same-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build installer
+        run: ${{ matrix.cmd }}
+        env:
+          # Unsigned builds for now. Add code-signing certs here later to remove the OS "unknown
+          # developer" prompts (CSC_LINK / CSC_KEY_PASSWORD on Windows/mac).
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - name: Attach installers to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.files }}
+          fail_on_unmatched_files: false

@@ -1,6 +1,6 @@
 {
   "name": "crowtherwatch",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CrowtherWatch — Pebbles freelancer time tracker (disclosed, consented proof-of-work).",
   "main": "src/main.js",
   "author": "Pebbles",
@@ -20,10 +20,30 @@
   "build": {
     "appId": "com.pebbles.crowtherwatch",
     "productName": "CrowtherWatch",
-    "files": ["src/**/*", "package.json"],
-    "directories": { "output": "release" },
-    "win": { "target": ["nsis"] },
-    "mac": { "target": ["dmg"], "category": "public.app-category.productivity" },
-    "linux": { "target": ["AppImage", "deb"], "category": "Utility" }
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.productivity"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Utility"
+    }
   }
 }

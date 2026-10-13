@@ -32,7 +32,6 @@ jobs:
             cmd: npm run dist:linux
             files: |
               release/*.AppImage
-              release/*.deb
               release/latest-linux.yml
     runs-on: ${{ matrix.os }}
     steps:

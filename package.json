@@ -1,6 +1,6 @@
 {
   "name": "crowtherwatch",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "CrowtherWatch — Pebbles freelancer time tracker (disclosed, consented proof-of-work).",
   "main": "src/main.js",
   "author": "Pebbles",
@@ -8,10 +8,10 @@
   "private": true,
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder",
-    "dist:win": "electron-builder --win",
-    "dist:mac": "electron-builder --mac",
-    "dist:linux": "electron-builder --linux"
+    "dist": "electron-builder --publish never",
+    "dist:win": "electron-builder --win --publish never",
+    "dist:mac": "electron-builder --mac --publish never",
+    "dist:linux": "electron-builder --linux --publish never"
   },
   "devDependencies": {
     "electron": "^33.0.0",
@@ -40,8 +40,7 @@
     },
     "linux": {
       "target": [
-        "AppImage",
-        "deb"
+        "AppImage"
       ],
       "category": "Utility"
     }

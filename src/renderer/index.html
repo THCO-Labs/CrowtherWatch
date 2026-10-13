@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;" />
+  <title>CrowtherWatch</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <span class="brand">Crowther<span class="brand-accent">Watch</span></span>
+    <span id="recDot" class="rec-dot hidden" title="Recording"></span>
+  </header>
+
+  <main id="app">
+    <!-- Consent -->
+    <section id="consentView" class="view hidden">
+      <h1>Before you start</h1>
+      <p class="muted">
+        CrowtherWatch records your working session and takes a screenshot of your screen
+        <strong>every 30 minutes</strong> while it is switched on, as proof of work. Your employer
+        can see these screenshots and your start/stop times. Nothing is captured while the tracker
+        is off. You can stop at any time.
+      </p>
+      <label class="check">
+        <input type="checkbox" id="consentBox" />
+        I understand and agree to be recorded while the tracker is on.
+      </label>
+      <button id="consentBtn" class="btn" disabled>Continue</button>
+    </section>
+
+    <!-- Login -->
+    <section id="loginView" class="view hidden">
+      <h1>Sign in</h1>
+      <div id="loginStep">
+        <label>Email</label>
+        <input type="email" id="email" placeholder="you@company.com" />
+        <label>Password</label>
+        <input type="password" id="password" />
+        <button id="sendCodeBtn" class="btn">Send verification code</button>
+      </div>
+      <div id="codeStep" class="hidden">
+        <p class="muted">We sent a 6-digit code to your email.</p>
+        <label>Verification code</label>
+        <input type="text" id="code" inputmode="numeric" placeholder="123456" />
+        <button id="verifyBtn" class="btn">Verify &amp; continue</button>
+        <button id="backBtn" class="btn-link">Use a different email</button>
+      </div>
+      <p id="loginError" class="error hidden"></p>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="dashView" class="view hidden">
+      <div id="recBanner" class="banner hidden">● Recording — screenshots every <span id="intMins">30</span> min</div>
+      <h1>Today</h1>
+      <p class="muted" id="who"></p>
+
+      <div class="cards">
+        <div class="card"><span class="card-label">Rate</span><span class="card-value" id="rate">—</span></div>
+        <div class="card"><span class="card-label">Expected today</span><span class="card-value" id="expToday">—</span></div>
+      </div>
+
+      <button id="toggleBtn" class="btn btn-start">Start working</button>
+      <p class="muted small" id="lastShot"></p>
+      <p id="dashError" class="error hidden"></p>
+
+      <p class="muted small footnote">
+        While recording, a red dot shows in the title bar. Your admin reviews your hours and
+        screenshots each month. You enter your own hours in Pebbles under “My Work”.
+      </p>
+    </section>
+  </main>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

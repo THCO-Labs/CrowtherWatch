@@ -1,6 +1,6 @@
 {
   "name": "crowtherwatch",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "CrowtherWatch — Pebbles freelancer time tracker (disclosed, consented proof-of-work).",
   "main": "src/main.js",
   "author": "Pebbles",
@@ -12,6 +12,9 @@
     "dist:win": "electron-builder --win --publish never",
     "dist:mac": "electron-builder --mac --publish never",
     "dist:linux": "electron-builder --linux --publish never"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9"
   },
   "devDependencies": {
     "electron": "^33.0.0",
@@ -27,6 +30,13 @@
     "directories": {
       "output": "release"
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "THCO-Labs",
+        "repo": "CrowtherWatch"
+      }
+    ],
     "win": {
       "target": [
         "nsis"

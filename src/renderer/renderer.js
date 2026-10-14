@@ -89,6 +89,9 @@ $('toggleBtn').addEventListener('click', async () => {
   finally { $('toggleBtn').disabled = false; }
 });
 
+window.cw.onUpdateReady(() => { show($('updateBar')); });
+$('updateBtn').addEventListener('click', () => window.cw.installUpdate());
+
 window.cw.onRecordingChanged(setRecordingUi);
 window.cw.onShotTaken((at) => { $('lastShot').textContent = `Last screenshot: ${new Date(at).toLocaleTimeString()}`; });
 window.cw.onCaptureError((msg) => setError($('dashError'), `Screenshot issue: ${msg}`));

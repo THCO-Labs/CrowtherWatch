@@ -13,4 +13,6 @@ contextBridge.exposeInMainWorld('cw', {
   onRecordingChanged: (cb) => ipcRenderer.on('recording-changed', (_e, on) => cb(on)),
   onShotTaken: (cb) => ipcRenderer.on('shot-taken', (_e, at) => cb(at)),
   onCaptureError: (cb) => ipcRenderer.on('capture-error', (_e, msg) => cb(msg)),
+  onUpdateReady: (cb) => ipcRenderer.on('update-ready', (_e, version) => cb(version)),
+  installUpdate: () => ipcRenderer.invoke('update:install'),
 });

@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, desktopCapturer, screen, Tray, nativeImage } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -171,6 +172,24 @@ ipcMain.handle('tracking:stop', async () => {
   return { ok: true };
 });
 
+ipcMain.handle('update:install', () => { autoUpdater.quitAndInstall(); });
+
+// ── Auto-update (electron-updater against the GitHub Releases feed). Checks on launch; downloads in
+//    the background; tells the renderer when an update is ready so the user can restart into it.
+//    Only runs in a packaged build — there is nothing to update in dev.
+function setupAutoUpdate() {
+  if (!app.isPackaged) return;
+  autoUpdater.autoDownload = true;
+  autoUpdater.on('update-downloaded', (info) => {
+    if (mainWindow) mainWindow.webContents.send('update-ready', info.version);
+  });
+  // Update failures must never block the app — log to the renderer quietly and carry on.
+  autoUpdater.on('error', (err) => {
+    if (mainWindow) mainWindow.webContents.send('update-error', String(err?.message || err));
+  });
+  autoUpdater.checkForUpdates().catch(() => { /* offline or no release yet — ignore */ });
+}
+
 ipcMain.handle('status:get', () => ({
   signedIn: !!state.token,
   email: state.employeeEmail,
@@ -205,6 +224,7 @@ app.whenReady().then(() => {
   } catch { /* tray is best-effort */ }
 
   createWindow();
+  setupAutoUpdate();
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 });
 

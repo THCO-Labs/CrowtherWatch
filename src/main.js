@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, desktopCapturer, screen, Tray, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, desktopCapturer, screen, Tray, nativeImage, net } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('node:path');
 const fs = require('node:fs');
@@ -63,8 +63,23 @@ function setRecording(on) {
 }
 
 // ── Capture one screenshot of the primary display and push it through the signed-upload flow.
+//    Each of the three network steps labels its own failures, so a bare "fetch failed" from Node
+//    becomes something diagnosable like "Cloudinary upload failed: fetch failed (ECONNRESET)".
 async function captureAndUpload() {
   if (!state.sessionId) return;
+
+  // Step 1 (sign) — captured outside the big try so a sign failure is labelled.
+  let ticket;
+  try {
+    ticket = await api('POST', '/api/employee/freelancer/screenshots/sign', { auth: true });
+  } catch (e) {
+    reportCaptureError('Sign request failed', e);
+    return;
+  }
+
+  // Step 2 (capture + upload to Cloudinary via Electron's net.fetch, which handles multipart
+  // binary uploads reliably — Node's native fetch has had edge-case failures with Blob([Buffer]).
+  let uploaded;
   try {
     const display = screen.getPrimaryDisplay();
     const { width, height } = display.size;
@@ -73,28 +88,37 @@ async function captureAndUpload() {
       types: ['screen'],
       thumbnailSize: { width: Math.round(width * scale), height: Math.round(height * scale) },
     });
-    if (sources.length === 0) return;
+    if (sources.length === 0) throw new Error('No screen source available');
 
     const png = sources[0].thumbnail.toPNG();
 
-    // 1. Ask the API to sign an upload (the API holds the Cloudinary secret, not this app).
-    const ticket = await api('POST', '/api/employee/freelancer/screenshots/sign', { auth: true });
+    // Build the file from a plain Uint8Array (not a Node Buffer wrapped in a Blob — some runtimes
+    // reject that for multipart uploads with a generic "fetch failed").
+    const bytes = new Uint8Array(png.buffer, png.byteOffset, png.byteLength);
+    const file = new File([bytes], 'screenshot.png', { type: 'image/png' });
 
-    // 2. Upload the bytes straight to Cloudinary with the signed fields.
     const form = new FormData();
-    form.append('file', new Blob([png], { type: 'image/png' }), 'screenshot.png');
+    form.append('file', file);
     form.append('api_key', String(ticket.api_key));
     form.append('timestamp', String(ticket.timestamp));
     form.append('folder', ticket.folder);
     form.append('signature', ticket.signature);
 
-    const uploadRes = await fetch(ticket.upload_url, { method: 'POST', body: form });
-    const uploaded = await uploadRes.json();
-    if (!uploadRes.ok || !uploaded.secure_url) {
-      throw new Error(uploaded?.error?.message || 'Cloudinary upload failed');
+    // net.fetch uses Chromium's network stack rather than Node's — more reliable for multipart.
+    const uploadRes = await net.fetch(ticket.upload_url, { method: 'POST', body: form });
+    const text = await uploadRes.text();
+    try { uploaded = text ? JSON.parse(text) : null; } catch { uploaded = null; }
+    if (!uploadRes.ok || !uploaded?.secure_url) {
+      throw new Error(uploaded?.error?.message || `Cloudinary responded ${uploadRes.status}`);
     }
+  } catch (e) {
+    reportCaptureError('Cloudinary upload failed', e);
+    return;
+  }
 
-    // 3. Record the stored screenshot against the session.
+  // Step 3 (record) — if this fails the image is in Cloudinary but Pebbles didn't learn about it;
+  // retention cleanup will eventually tidy orphans. We still surface the error.
+  try {
     await api('POST', '/api/employee/freelancer/screenshots', {
       auth: true,
       body: {
@@ -108,8 +132,16 @@ async function captureAndUpload() {
     state.lastShotAt = new Date().toISOString();
     if (mainWindow) mainWindow.webContents.send('shot-taken', state.lastShotAt);
   } catch (e) {
-    if (mainWindow) mainWindow.webContents.send('capture-error', e.message);
+    reportCaptureError('Could not record screenshot with Pebbles', e);
   }
+}
+
+function reportCaptureError(label, e) {
+  // Node's fetch wraps the real cause under `.cause` — surfacing it turns "fetch failed" into
+  // something like "ECONNRESET" or "ENOTFOUND api.cloudinary.com".
+  const cause = e?.cause?.code || e?.cause?.message;
+  const msg = cause ? `${label}: ${e.message} (${cause})` : `${label}: ${e.message}`;
+  if (mainWindow) mainWindow.webContents.send('capture-error', msg);
 }
 
 function startCaptureLoop() {

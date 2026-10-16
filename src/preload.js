@@ -15,4 +15,13 @@ contextBridge.exposeInMainWorld('cw', {
   onCaptureError: (cb) => ipcRenderer.on('capture-error', (_e, msg) => cb(msg)),
   onUpdateReady: (cb) => ipcRenderer.on('update-ready', (_e, version) => cb(version)),
   installUpdate: () => ipcRenderer.invoke('update:install'),
+
+  // Screen-recording bridges. MediaRecorder is a DOM API, so recording runs in the renderer, but the
+  // main process still owns the token and the network: main tells the renderer when to start/stop and
+  // with which desktop source, and the renderer ships each finished clip's bytes back for upload.
+  onStartVideo: (cb) => ipcRenderer.on('video:start', (_e, payload) => cb(payload)),
+  onStopVideo: (cb) => ipcRenderer.on('video:stop', () => cb()),
+  sendVideoSegment: (payload) => ipcRenderer.invoke('video:segment', payload),
+  reportVideoError: (msg) => ipcRenderer.send('video:error', String(msg)),
+  onVideoSaved: (cb) => ipcRenderer.on('video-saved', (_e, at) => cb(at)),
 });

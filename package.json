@@ -1,6 +1,6 @@
 {
   "name": "crowtherwatch",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "CrowtherWatch — Pebbles freelancer time tracker (disclosed, consented proof-of-work).",
   "main": "src/main.js",
   "author": "Pebbles",

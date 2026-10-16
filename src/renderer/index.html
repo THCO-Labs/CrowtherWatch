@@ -23,10 +23,10 @@
     <section id="consentView" class="view hidden">
       <h1>Before you start</h1>
       <p class="muted">
-        CrowtherWatch records your working session and takes a screenshot of your screen
-        <strong>every 30 minutes</strong> while it is switched on, as proof of work. Your employer
-        can see these screenshots and your start/stop times. Nothing is captured while the tracker
-        is off. You can stop at any time.
+        While it is switched on, CrowtherWatch records your working session as proof of work: it
+        <strong>records your screen</strong> and also saves a <strong>screenshot every 10 minutes</strong>.
+        Your employer can see these recordings and screenshots and your start/stop times. Nothing is
+        captured while the tracker is off. You can stop at any time.
       </p>
       <label class="check">
         <input type="checkbox" id="consentBox" />
@@ -57,7 +57,7 @@
 
     <!-- Dashboard -->
     <section id="dashView" class="view hidden">
-      <div id="recBanner" class="banner hidden">● Recording — screenshots every <span id="intMins">30</span> min</div>
+      <div id="recBanner" class="banner hidden">● Recording — screen video + screenshots every <span id="intMins">10</span> min</div>
       <h1>Today</h1>
       <p class="muted" id="who"></p>
 
@@ -68,6 +68,7 @@
 
       <button id="toggleBtn" class="btn btn-start">Start working</button>
       <p class="muted small" id="lastShot"></p>
+      <p class="muted small" id="lastClip"></p>
       <p id="dashError" class="error hidden"></p>
 
       <p class="muted small footnote">
@@ -77,6 +78,7 @@
     </section>
   </main>
 
+  <script src="recorder.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

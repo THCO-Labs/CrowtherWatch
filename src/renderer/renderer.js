@@ -36,6 +36,7 @@ async function renderDashboard() {
   }
   setRecordingUi(s.recording);
   $('lastShot').textContent = s.lastShotAt ? `Last screenshot: ${new Date(s.lastShotAt).toLocaleTimeString()}` : '';
+  $('lastClip').textContent = s.lastVideoAt ? `Last recording clip: ${new Date(s.lastVideoAt).toLocaleTimeString()}` : '';
   showView('dashView');
 }
 
@@ -94,7 +95,8 @@ $('updateBtn').addEventListener('click', () => window.cw.installUpdate());
 
 window.cw.onRecordingChanged(setRecordingUi);
 window.cw.onShotTaken((at) => { $('lastShot').textContent = `Last screenshot: ${new Date(at).toLocaleTimeString()}`; });
-window.cw.onCaptureError((msg) => setError($('dashError'), `Screenshot issue: ${msg}`));
+window.cw.onVideoSaved((at) => { $('lastClip').textContent = `Last recording clip: ${new Date(at).toLocaleTimeString()}`; });
+window.cw.onCaptureError((msg) => setError($('dashError'), `Recording issue: ${msg}`));
 
 // ── Boot ─────────────────────────────────────────────────────────────────────────────────────
 (async () => {
